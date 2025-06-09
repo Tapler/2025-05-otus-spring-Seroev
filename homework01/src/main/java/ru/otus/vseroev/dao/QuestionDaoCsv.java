@@ -1,5 +1,6 @@
 package ru.otus.vseroev.dao;
 
+import ru.otus.vseroev.domain.AnswerOption;
 import ru.otus.vseroev.domain.Question;
 
 import java.io.BufferedReader;
@@ -29,13 +30,18 @@ public class QuestionDaoCsv implements QuestionDao {
                     .filter(tokens -> tokens.length > 0) // пропускаем пустые строки
                     .map(tokens -> {
                         String questionText = tokens[0];
-                        // Если есть варианты ответов, собираем их в список, иначе пустой список
-                        List<String> options = tokens.length > 1
-                                ? Arrays.asList(Arrays.copyOfRange(tokens, 1, tokens.length))
-                                : List.of();
+                        List<AnswerOption> options =
+                                Arrays.stream(Arrays.copyOfRange(tokens, 1, tokens.length))
+                                        .map(optionToken -> {
+                                            String[] parts = optionToken.split(":");
+                                            String text = parts[0];
+                                            boolean correct = parts.length > 1 && Boolean.parseBoolean(parts[1]);
+                                            return new AnswerOption(text, correct);
+                                        })
+                                        .collect(Collectors.toList());
                         return new Question(questionText, options);
                     })
-                    .collect(Collectors.toList()); // собираем все вопросы в список
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             // В случае ошибки выбрасываем RuntimeException
             throw new RuntimeException("Failed to read questions from resource: " + resourceName, e);
