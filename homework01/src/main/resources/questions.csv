@@ -1,0 +1,5 @@
+What is Dependency Injection?,A way to provide objects with their dependencies,An algorithm for sorting data,A type of database
+What is an IoC container in Spring?,Environment for dependency management,Logging system,Database
+What is the main way to inject dependencies in Spring?,Via constructor,Via inheritance,Via static fields
+What does the XML context in Spring describe?,Bean configuration,Display styles,SQL queries
+Which interface is used to load context from XML?,ClassPathXmlApplicationContext,FileReader,JdbcTemplate
