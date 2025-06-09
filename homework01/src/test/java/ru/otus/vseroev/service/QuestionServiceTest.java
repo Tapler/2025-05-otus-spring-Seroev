@@ -39,7 +39,7 @@ public class QuestionServiceTest {
                 new Question("Question 1", List.of("Option 1", "Option 2")),
                 new Question("Question 2", List.of("Option A"))
         ));
-        QuestionService service = new QuestionService(questionDao);
+        QuestionService service = new QuestionServiceImpl(questionDao);
 
         // Act
         service.printQuestions();
