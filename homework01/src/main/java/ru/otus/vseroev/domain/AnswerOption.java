@@ -3,11 +3,9 @@ package ru.otus.vseroev.domain;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.List;
-
 @Getter
 @AllArgsConstructor
-public class Question {
+public class AnswerOption {
     private final String text;
-    private final List<AnswerOption> answerOptions;
+    private final boolean isCorrect;
 }

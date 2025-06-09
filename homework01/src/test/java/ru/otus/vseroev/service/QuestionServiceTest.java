@@ -1,55 +1,123 @@
 package ru.otus.vseroev.service;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import ru.otus.vseroev.config.AppProperties;
 import ru.otus.vseroev.dao.QuestionDao;
+import ru.otus.vseroev.domain.AnswerOption;
 import ru.otus.vseroev.domain.Question;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.util.List;
+import java.util.ArrayList;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class QuestionServiceTest {
-    // Поток для перехвата вывода в консоль
-    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-    // Сохраняем оригинальный System.out
-    private final PrintStream originalOut = System.out;
+    private IOService ioService;
+    private QuestionServiceImpl questionService;
+    private List<Question> questions;
 
     @Before
-    public void setUpStreams() {
-        // Перенаправляем System.out на наш поток перед каждым тестом
-        System.setOut(new PrintStream(outContent));
-    }
+    public void setUp() {
+        ioService = mock(IOService.class);
+        QuestionDao questionDao = mock(QuestionDao.class);
+        AppProperties appProperties = mock(AppProperties.class);
 
-    @After
-    public void restoreStreams() {
-        // Восстанавливаем System.out после теста
-        System.setOut(originalOut);
+        when(appProperties.getQuestionsCount()).thenReturn(2);
+        when(appProperties.getPassCount()).thenReturn(1);
+
+        List<AnswerOption> options1 = List.of(
+                new AnswerOption("Option 1", false),
+                new AnswerOption("Option 2", true)
+        );
+        List<AnswerOption> options2 = List.of(
+                new AnswerOption("Option A", true),
+                new AnswerOption("Option B", false)
+        );
+        questions = new ArrayList<>(List.of(
+                new Question("Question 1", options1),
+                new Question("Question 2", options2)
+        ));
+        when(questionDao.findAll()).thenReturn(questions);
+
+        // Создаем spy и мокируем getShuffledQuestions, чтобы отключить shuffle
+        QuestionServiceImpl realService = new QuestionServiceImpl(questionDao, appProperties, ioService);
+        questionService = spy(realService);
+        doReturn(questions).when(questionService).getShuffledQuestions();
     }
 
     @Test
-    public void printQuestions_shouldPrintAllQuestionsAndOptions() {
-        // Arrange
-        QuestionDao questionDao = mock(QuestionDao.class);
-        when(questionDao.findAll()).thenReturn(List.of(
-                new Question("Question 1", List.of("Option 1", "Option 2")),
-                new Question("Question 2", List.of("Option A"))
-        ));
-        QuestionService service = new QuestionServiceImpl(questionDao);
+    public void printQuestions_shouldAskQuestionsAndCheckAnswers() {
+        // Эмулируем ввод пользователя: фамилия, имя, ответы на вопросы
+        when(ioService.readLine())
+                .thenReturn("Ivanov") // last name
+                .thenReturn("Ivan")   // first name
+                .thenReturn("2")      // answer to Q1 (правильный)
+                .thenReturn("1");     // answer to Q2 (правильный)
 
-        // Act
+        questionService.printQuestions();
+
+        // Проверяем, что вопросы и варианты были выведены
+        verify(ioService).println(contains("Question 1"));
+        verify(ioService).println(contains("Option 1"));
+        verify(ioService).println(contains("Option 2"));
+        verify(ioService).println(contains("Question 2"));
+        verify(ioService).println(contains("Option A"));
+        verify(ioService).println(contains("Option B"));
+
+        // Проверяем, что результат теста выведен
+        verify(ioService).println(contains("Test passed"));
+    }
+
+    @Test
+    public void printQuestions_shouldHandleInvalidInput() {
+        // Ввод: фамилия, имя, невалидный ответ, снова невалидный, затем валидный, затем валидный для второго вопроса
+        when(ioService.readLine())
+                .thenReturn("Petrov") // last name
+                .thenReturn("Petr")   // first name
+                .thenReturn("abc")    // invalid input (not a number)
+                .thenReturn("0")      // invalid input (out of range)
+                .thenReturn("2")      // valid answer for Q1
+                .thenReturn("1");     // valid answer for Q2
+
+        questionService.printQuestions();
+
+        // Проверяем, что сообщения об ошибке были выведены
+        verify(ioService, atLeastOnce()).println(contains("Please enter a valid number!"));
+        verify(ioService, atLeastOnce()).println(contains("Please enter a positive number!"));
+        // Проверяем, что вопросы и варианты были выведены
+        verify(ioService).println(contains("Question 1"));
+        verify(ioService).println(contains("Option 1"));
+        verify(ioService).println(contains("Option 2"));
+        verify(ioService).println(contains("Question 2"));
+        verify(ioService).println(contains("Option A"));
+        verify(ioService).println(contains("Option B"));
+    }
+
+    @Test
+    public void printQuestions_shouldPassWithZeroPassCountAndOneQuestion() {
+        // Настройки: один вопрос, проходной балл 0
+        IOService io = mock(IOService.class);
+        QuestionDao questionDao = mock(QuestionDao.class);
+        AppProperties appProperties = mock(AppProperties.class);
+        when(appProperties.getQuestionsCount()).thenReturn(1);
+        when(appProperties.getPassCount()).thenReturn(0);
+        List<AnswerOption> options = List.of(
+                new AnswerOption("Only Option", true)
+        );
+        List<Question> edgeQuestions = new ArrayList<>(List.of(
+                new Question("Test Question", options)
+        ));
+        when(questionDao.findAll()).thenReturn(edgeQuestions);
+        QuestionServiceImpl service = new QuestionServiceImpl(questionDao, appProperties, io);
+
+        when(io.readLine())
+                .thenReturn("Sidorov") // last name
+                .thenReturn("Sidr")    // first name
+                .thenReturn("15");     // answer for the only question
+
         service.printQuestions();
 
-        // Assert: проверяем, что в выводе есть все нужные строки
-        String output = outContent.toString();
-        assertTrue(output.contains("Question 1"));
-        assertTrue(output.contains("Option 1"));
-        assertTrue(output.contains("Option 2"));
-        assertTrue(output.contains("Question 2"));
-        assertTrue(output.contains("Option A"));
+        verify(io).println(contains("Test passed"));
     }
 }
