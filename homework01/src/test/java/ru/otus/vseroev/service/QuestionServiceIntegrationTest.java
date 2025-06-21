@@ -51,9 +51,10 @@ class QuestionServiceIntegrationTest {
         service.printQuestions();
 
         String output = outContent.toString();
-        assertThat(output).contains("Test Question 1");
-        assertThat(output).contains("Option 1");
-        assertThat(output).contains("Option B");
-        assertThat(output).contains("Test passed");
+        assertThat(output)
+            .contains("Test Question 1")
+            .contains("Option 1")
+            .contains("Option B")
+            .contains("Test passed");
     }
 }
