@@ -1,28 +1,37 @@
 package ru.otus.vseroev.service;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import ru.otus.vseroev.domain.AnswerOption;
 import ru.otus.vseroev.domain.Question;
 import ru.otus.vseroev.domain.TestResult;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
-public class TestProcessImplTest {
+@ExtendWith(MockitoExtension.class)
+class TestProcessImplTest {
+    @Mock
     private IOService ioService;
+    @InjectMocks
     private TestProcessImpl testProcess;
 
-    @Before
-    public void setUp() {
-        ioService = mock(IOService.class);
-        testProcess = new TestProcessImpl(ioService);
+    @BeforeEach
+    void setUp() {
+        // No need for setup in this test class
     }
 
     @Test
-    public void shouldReturnAllCorrectAnswers() {
+    void shouldReturnAllCorrectAnswers() {
         List<AnswerOption> options = List.of(
                 new AnswerOption("1", false),
                 new AnswerOption("2", true)
@@ -31,17 +40,17 @@ public class TestProcessImplTest {
                 new Question("Q1", options),
                 new Question("Q2", options)
         );
-        when(ioService.readLine()).thenReturn("2").thenReturn("2");
+        given(ioService.readLine()).willReturn("2", "2");
 
         TestResult result = testProcess.run("Ivanov", "Ivan", questions);
-        assertEquals("Ivanov", result.getLastName());
-        assertEquals("Ivan", result.getFirstName());
-        assertEquals(2, result.getCorrectAnswers());
-        assertEquals(2, result.getTotalQuestions());
+        assertThat(result.getLastName()).isEqualTo("Ivanov");
+        assertThat(result.getFirstName()).isEqualTo("Ivan");
+        assertThat(result.getCorrectAnswers()).isEqualTo(2);
+        assertThat(result.getTotalQuestions()).isEqualTo(2);
     }
 
     @Test
-    public void shouldReturnPartialCorrectAnswers() {
+    void shouldReturnPartialCorrectAnswers() {
         List<AnswerOption> options = List.of(
                 new AnswerOption("1", false),
                 new AnswerOption("2", true)
@@ -50,15 +59,15 @@ public class TestProcessImplTest {
                 new Question("Q1", options),
                 new Question("Q2", options)
         );
-        when(ioService.readLine()).thenReturn("2").thenReturn("1");
+        given(ioService.readLine()).willReturn("2", "1");
 
         TestResult result = testProcess.run("Petrov", "Petr", questions);
-        assertEquals(1, result.getCorrectAnswers());
-        assertEquals(2, result.getTotalQuestions());
+        assertThat(result.getCorrectAnswers()).isEqualTo(1);
+        assertThat(result.getTotalQuestions()).isEqualTo(2);
     }
 
     @Test
-    public void shouldHandleInvalidInputAndAcceptValid() {
+    void shouldHandleInvalidInputAndAcceptValid() {
         List<AnswerOption> options = List.of(
                 new AnswerOption("1", false),
                 new AnswerOption("2", true)
@@ -66,11 +75,11 @@ public class TestProcessImplTest {
         List<Question> questions = List.of(
                 new Question("Q1", options)
         );
-        when(ioService.readLine()).thenReturn("abc").thenReturn("0").thenReturn("2");
+        given(ioService.readLine()).willReturn("abc", "0", "2");
 
         TestResult result = testProcess.run("Sidorov", "Sidr", questions);
-        assertEquals(1, result.getCorrectAnswers());
-        assertEquals(1, result.getTotalQuestions());
+        assertThat(result.getCorrectAnswers()).isEqualTo(1);
+        assertThat(result.getTotalQuestions()).isEqualTo(1);
         verify(ioService, atLeastOnce()).println(contains("Please enter a valid number!"));
         verify(ioService, atLeastOnce()).println(contains("Please enter a positive number!"));
     }
