@@ -50,7 +50,8 @@ public class QuestionServiceIntegrationTest {
 
         QuestionDaoCsv questionDao = new QuestionDaoCsv(appProperties.getQuestionsFile());
         IOService ioService = new ConsoleIOService();
-        QuestionServiceImpl service = new QuestionServiceImpl(questionDao, appProperties, ioService);
+        TestProcess testProcess = new TestProcessImpl(ioService);
+        QuestionServiceImpl service = new QuestionServiceImpl(questionDao, appProperties, ioService, testProcess);
 
         // Запуск теста
         service.printQuestions();
