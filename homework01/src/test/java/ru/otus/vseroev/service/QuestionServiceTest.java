@@ -1,7 +1,10 @@
 package ru.otus.vseroev.service;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import ru.otus.vseroev.config.AppProperties;
 import ru.otus.vseroev.dao.QuestionDao;
 import ru.otus.vseroev.domain.AnswerOption;
@@ -11,24 +14,26 @@ import ru.otus.vseroev.domain.TestResult;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
-public class QuestionServiceTest {
+@ExtendWith(MockitoExtension.class)
+class QuestionServiceTest {
+    @Mock
     private IOService ioService;
-    private QuestionServiceImpl questionService;
-    private List<Question> questions;
+    @Mock
+    private QuestionDao questionDao;
+    @Mock
+    private AppProperties appProperties;
+    @Mock
     private TestProcess testProcess;
+    @InjectMocks
+    private QuestionServiceImpl questionService;
 
-    @Before
-    public void setUp() {
-        ioService = mock(IOService.class);
-        QuestionDao questionDao = mock(QuestionDao.class);
-        AppProperties appProperties = mock(AppProperties.class);
-        testProcess = mock(TestProcess.class);
-
-        when(appProperties.getQuestionsCount()).thenReturn(2);
-        when(appProperties.getPassCount()).thenReturn(1);
-
+    @Test
+    void printQuestions_shouldPrintResultFromTestProcess() {
         List<AnswerOption> options1 = List.of(
                 new AnswerOption("Option 1", false),
                 new AnswerOption("Option 2", true)
@@ -37,32 +42,21 @@ public class QuestionServiceTest {
                 new AnswerOption("Option A", true),
                 new AnswerOption("Option B", false)
         );
-        questions = new ArrayList<>(List.of(
+        List<Question> questions = new ArrayList<>(List.of(
                 new Question("Question 1", options1),
                 new Question("Question 2", options2)
         ));
-        when(questionDao.findAll()).thenReturn(questions);
-        // Создаем spy и мокируем getShuffledQuestions, чтобы отключить shuffle
-        QuestionServiceImpl realService = new QuestionServiceImpl(questionDao, appProperties, ioService, testProcess);
-        questionService = spy(realService);
-        doReturn(questions).when(questionService).getShuffledQuestions();
-    }
-
-    @Test
-    public void printQuestions_shouldPrintResultFromTestProcess() {
-        // Эмулируем ввод пользователя: фамилия, имя, ответы на вопросы
-        when(ioService.readLine())
-                .thenReturn("Ivanov")
-                .thenReturn("Ivan");
+        given(appProperties.getQuestionsCount()).willReturn(2);
+        given(appProperties.getPassCount()).willReturn(1);
+        given(questionDao.findAll()).willReturn(questions);
+        given(ioService.readLine()).willReturn("Ivanov", "Ivan");
         TestResult stubResult = new TestResult("Ivanov", "Ivan", 2, 2);
-        when(testProcess.run(anyString(), anyString(), anyList())).thenReturn(stubResult);
+        given(testProcess.run(anyString(), anyString(), anyList())).willReturn(stubResult);
 
-        // Act
         questionService.printQuestions();
 
-        // Assert
-        verify(ioService).println(contains("Result for Ivanov Ivan"));
-        verify(ioService).println(contains("Correct answers: 2 out of 2"));
-        verify(ioService).println(contains("Test passed"));
+        verify(ioService).println(org.mockito.ArgumentMatchers.contains("Result for Ivanov Ivan"));
+        verify(ioService).println(org.mockito.ArgumentMatchers.contains("Correct answers: 2 out of 2"));
+        verify(ioService).println(org.mockito.ArgumentMatchers.contains("Test passed"));
     }
 }

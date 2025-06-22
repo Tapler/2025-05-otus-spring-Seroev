@@ -1,14 +1,14 @@
 package ru.otus.vseroev.service;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
-import ru.otus.vseroev.config.AppConfig;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.vseroev.config.AppProperties;
 import ru.otus.vseroev.dao.QuestionDaoCsv;
 
@@ -16,12 +16,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {AppConfig.class})
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = ru.otus.vseroev.config.AppConfig.class)
 @TestPropertySource("classpath:application-test.properties")
-public class QuestionServiceIntegrationTest {
+class QuestionServiceIntegrationTest {
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final PrintStream originalOut = System.out;
     private final PrintStream testOut = new PrintStream(outContent);
@@ -30,20 +30,19 @@ public class QuestionServiceIntegrationTest {
     @Autowired
     private AppProperties appProperties;
 
-    @Before
-    public void setUpStreams() {
+    @BeforeEach
+    void setUpStreams() {
         System.setOut(testOut);
     }
 
-    @After
-    public void restoreStreams() {
+    @AfterEach
+    void restoreStreams() {
         System.setOut(originalOut);
         System.setIn(originalIn);
     }
 
     @Test
-    public void integrationTest_shouldPassTestFlow() {
-        // Подготовка ввода пользователя (фамилия, имя, ответы)
+    void integrationTest_shouldPassTestFlow() {
         String userInput = "Ivanov\nIvan\n2\n1\n";
         ByteArrayInputStream inContent = new ByteArrayInputStream(userInput.getBytes());
         System.setIn(inContent);
@@ -53,13 +52,13 @@ public class QuestionServiceIntegrationTest {
         TestProcess testProcess = new TestProcessImpl(ioService);
         QuestionServiceImpl service = new QuestionServiceImpl(questionDao, appProperties, ioService, testProcess);
 
-        // Запуск теста
         service.printQuestions();
 
         String output = outContent.toString();
-        assertTrue(output.contains("Test Question 1"));
-        assertTrue(output.contains("Option 1"));
-        assertTrue(output.contains("Option B"));
-        assertTrue(output.contains("Test passed"));
+        assertThat(output)
+            .contains("Test Question 1")
+            .contains("Option 1")
+            .contains("Option B")
+            .contains("Test passed");
     }
 }
