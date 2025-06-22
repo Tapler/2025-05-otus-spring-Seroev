@@ -1,6 +1,7 @@
 package ru.otus.vseroev.service;
 
 import org.springframework.stereotype.Service;
+
 import java.util.Scanner;
 
 @Service

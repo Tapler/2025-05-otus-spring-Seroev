@@ -1,8 +1,11 @@
 package ru.otus.vseroev.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
-import ru.otus.vseroev.config.AppProperties;
+import ru.otus.vseroev.config.QuestionSettings;
+import ru.otus.vseroev.config.TestAppSettings;
 import ru.otus.vseroev.dao.QuestionDao;
 import ru.otus.vseroev.domain.Question;
 import ru.otus.vseroev.domain.TestResult;
@@ -15,30 +18,36 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class QuestionServiceImpl implements QuestionService {
     private final QuestionDao questionDao;
-    private final AppProperties appProperties;
+    private final QuestionSettings questionSettings;
+    private final TestAppSettings testAppSettings;
     private final IOService ioService;
     private final TestProcess testProcess;
+    private final MessageSource messageSource;
 
     @Override
     public void printQuestions() {
-        ioService.print("Enter your last name: ");
+        // Вывод используемой локали
+        String localeMsg = messageSource.getMessage("used.locale", new Object[]{LocaleContextHolder.getLocale()}, LocaleContextHolder.getLocale());
+        ioService.println(localeMsg);
+        ioService.print(messageSource.getMessage("enter.lastName", null, LocaleContextHolder.getLocale()));
         String lastName = ioService.readLine();
-        ioService.print("Enter your first name: ");
+        ioService.print(messageSource.getMessage("enter.firstName", null, LocaleContextHolder.getLocale()));
         String firstName = ioService.readLine();
 
-        List<Question> questions = appProperties.isShuffleQuestions()
+        List<Question> questions = testAppSettings.isShuffleQuestions()
                 ? getShuffledQuestions()
                 : questionDao.findAll().stream()
-                .limit(appProperties.getQuestionsCount())
+                .limit(questionSettings.getQuestionsCount())
                 .collect(Collectors.toList());
 
         TestResult result = testProcess.run(lastName, firstName, questions);
-        ioService.println("\nResult for " + result.getLastName() + " " + result.getFirstName() + ":");
-        ioService.println("Correct answers: " + result.getCorrectAnswers() + " out of " + result.getTotalQuestions());
-        if (result.getCorrectAnswers() >= appProperties.getPassCount()) {
-            ioService.println("Test passed! Congratulations!");
+        // Вывод результата с локализацией
+        ioService.println("\n" + messageSource.getMessage("score.person", new Object[]{result.getLastName() + " " + result.getFirstName()}, LocaleContextHolder.getLocale()));
+        ioService.println(messageSource.getMessage("score.answers", new Object[]{result.getCorrectAnswers(), result.getTotalQuestions()}, LocaleContextHolder.getLocale()));
+        if (result.getCorrectAnswers() >= questionSettings.getPassCount()) {
+            ioService.println(messageSource.getMessage("result.success", null, LocaleContextHolder.getLocale()));
         } else {
-            ioService.println("Test not passed. Please try again.");
+            ioService.println(messageSource.getMessage("result.fail", null, LocaleContextHolder.getLocale()));
         }
     }
 
@@ -46,7 +55,7 @@ public class QuestionServiceImpl implements QuestionService {
         List<Question> all = questionDao.findAll();
         Collections.shuffle(all);
         return all.stream()
-                .limit(appProperties.getQuestionsCount())
+                .limit(questionSettings.getQuestionsCount())
                 .collect(Collectors.toList());
     }
 }

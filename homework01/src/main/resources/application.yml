@@ -1,0 +1,7 @@
+questions:
+  file-en: questions_en.csv
+  file-ru: questions_ru.csv
+  pass-count: 3
+  questionsCount: 5
+app:
+  shuffle-questions: false

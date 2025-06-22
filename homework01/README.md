@@ -1,4 +1,4 @@
-# Задание: Приложение для тестирования студентов
+# Student Testing Application (Spring Boot)
 
 ## Задание
 Приложение по проведению тестирования студентов (с самим тестированием)
@@ -11,12 +11,22 @@
 - Пример юнит-теста для сервиса
 - Пример интеграционного теста для сервиса
 
-### Как запустить
-1. Build the project with Maven:
-   ```sh
-   mvn clean package
-   ```
-2. Run the application:
-   ```sh
-   java -jar target/student-testing-1.0-SNAPSHOT.jar
-   ```
+## Запуск приложения
+
+### Через IDE
+- Найдите класс `Homework01Application` (src/main/java/ru/otus/vseroev/Homework01Application.java)
+- Запустите его как Java-приложение
+
+### Через Maven
+```sh
+mvn spring-boot:run
+```
+
+### Через jar-файл
+```sh
+mvn clean package
+java -jar target/student-testing-1.0-SNAPSHOT.jar
+```
+
+## Локализация
+- Вопросы и все сообщения локализованы (en/ru)
