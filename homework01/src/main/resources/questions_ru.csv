@@ -1,0 +1,5 @@
+Чем управляет Spring?,Бины:true,Контроллеры:false,Таблицы:false
+Для какого языка написан Spring?,Java:true,Python:false,PHP:false
+IoC означает инверсию управления?,Да:true,Нет:false,Возможно:false
+Бин — это объект?,Да:true,Нет:false
+Spring создает бины?,Да:true,Нет:false

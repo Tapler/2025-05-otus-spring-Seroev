@@ -1,6 +1,8 @@
 package ru.otus.vseroev.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import ru.otus.vseroev.domain.AnswerOption;
 import ru.otus.vseroev.domain.Question;
@@ -12,6 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TestProcessImpl implements TestProcess {
     private final IOService ioService;
+    private final MessageSource messageSource;
 
     /**
      * Проводит тестирование: задает вопросы, собирает ответы, возвращает результат.
@@ -34,17 +37,17 @@ public class TestProcessImpl implements TestProcess {
         boolean validInput = false;
         // Ввод повторяется, пока не будет введено положительное число.
         while (!validInput) {
-            ioService.print("Your answer: ");
+            ioService.print(messageSource.getMessage("answer.prompt", null, LocaleContextHolder.getLocale()));
             String answer = ioService.readLine();
             try {
                 answerIndex = Integer.parseInt(answer.trim()) - 1;
                 if (answerIndex < 0) {
-                    ioService.println("Please enter a positive number!");
+                    ioService.println(messageSource.getMessage("positive.number", null, LocaleContextHolder.getLocale()));
                 } else {
                     validInput = true;
                 }
             } catch (NumberFormatException e) {
-                ioService.println("Please enter a valid number!");
+                ioService.println(messageSource.getMessage("valid.number", null, LocaleContextHolder.getLocale()));
             }
         }
         // Проверяет, что индекс в допустимых границах и выбранный вариант помечен как правильный
