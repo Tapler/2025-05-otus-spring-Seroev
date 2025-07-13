@@ -1,5 +1,9 @@
 # Student Testing Application (Spring Boot)
 
+**Примечание:**
+Методы с аннотацией `@ShellMethod` (например, `startQuiz`) не вызываются напрямую из кода приложения,
+а автоматически вызываются Spring Shell при вводе соответствующей команды пользователем в консоли.
+
 ## Задание
 Приложение по проведению тестирования студентов (с самим тестированием)
 
@@ -16,16 +20,46 @@
 ### Через IDE
 - Найдите класс `Homework01Application` (src/main/java/ru/otus/vseroev/Homework01Application.java)
 - Запустите его как Java-приложение
+- После запуска появится приглашение Spring Shell. Для начала опроса выполните команду:
+
+```shell
+start --lang en
+```
+или
+```shell
+start --lang ru
+```
 
 ### Через Maven
 ```sh
 mvn spring-boot:run
+```
+После запуска используйте команды Spring Shell, например:
+
+```
+start --lang en
 ```
 
 ### Через jar-файл
 ```sh
 mvn clean package
 java -jar target/student-testing-1.0-SNAPSHOT.jar
+```
+После запуска используйте команды Spring Shell, например:
+
+```
+start --lang en
+```
+
+## Управление через Spring Shell
+- Для запуска опроса используйте команду:
+
+```
+start --lang <en|ru>
+```
+- Для просмотра доступных команд введите:
+```
+help
 ```
 
 ## Локализация
