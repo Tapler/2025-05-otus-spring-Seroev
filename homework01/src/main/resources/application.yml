@@ -5,3 +5,4 @@ questions:
   questionsCount: 5
 app:
   shuffle-questions: false
+  default-locale: ru
