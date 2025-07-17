@@ -11,4 +11,6 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "app")
 public class TestAppSettings {
     private boolean shuffleQuestions;
+    // поле для хранения локали по умолчанию (возможные значения ru, en)
+    private String defaultLocale;
 }
