@@ -66,6 +66,8 @@ class BookServiceImplTest {
     @Test
     void shouldUpdateBook() {
         Book book = new Book(3L, "Upd", new Genre(1L, null), List.of());
+        // Мокаем, что книга с id=3 найдена
+        when(bookDao.findById(3L)).thenReturn(Optional.of(book));
         when(genreService.findById(1L)).thenReturn(Optional.of(new Genre(1L, "g")));
         bookService.update(book);
         verify(bookDao, times(1)).update(book);
@@ -114,6 +116,7 @@ class BookServiceImplTest {
     @Test
     void shouldThrowIfGenreNotFoundOnUpdate() {
         Book book = new Book(1L, "Upd", new Genre(99L, null), List.of());
+        when(bookDao.findById(1L)).thenReturn(Optional.of(book));
         when(genreService.findById(99L)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> bookService.update(book))
             .isInstanceOf(NotFoundException.class)
@@ -124,6 +127,7 @@ class BookServiceImplTest {
     @Test
     void shouldThrowIfAuthorNotFoundOnUpdate() {
         Book book = new Book(1L, "Upd", new Genre(1L, null), List.of(new Author(10L, null)));
+        when(bookDao.findById(1L)).thenReturn(Optional.of(book));
         when(genreService.findById(1L)).thenReturn(Optional.of(new Genre(1L, "g")));
         when(authorService.findById(10L)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> bookService.update(book))

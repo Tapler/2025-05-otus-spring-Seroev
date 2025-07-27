@@ -56,11 +56,22 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void update(Book book) {
-        checkGenreExists(book.getGenre());
-        if (book.getAuthors() != null) {
-            checkAuthorsExist(book.getAuthors());
+        Book existing = findById(book.getId()).orElseThrow(() -> new NotFoundException("Книга не найдена"));
+        checkGenreExists(existing.getGenre());
+        if (existing.getAuthors() != null) {
+            checkAuthorsExist(existing.getAuthors());
         }
-        bookDao.update(book);
+        // Обновляем только непустые поля
+        if (book.getTitle() != null) {
+            existing.setTitle(book.getTitle());
+        }
+        if (book.getGenre() != null) {
+            existing.setGenre(book.getGenre());
+        }
+        if (book.getAuthors() != null && !book.getAuthors().isEmpty()) {
+            existing.setAuthors(book.getAuthors());
+        }
+        bookDao.update(existing);
     }
 
     @Override

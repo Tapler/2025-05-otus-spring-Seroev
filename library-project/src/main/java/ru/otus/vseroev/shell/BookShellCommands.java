@@ -1,6 +1,7 @@
 package ru.otus.vseroev.shell;
 
 import lombok.RequiredArgsConstructor;
+import ru.otus.vseroev.exception.NotFoundException;
 import ru.otus.vseroev.model.Author;
 import ru.otus.vseroev.model.Book;
 import ru.otus.vseroev.model.Genre;
@@ -50,30 +51,36 @@ public class BookShellCommands {
     // Добавить книгу
     @ShellMethod(value = "Добавить книгу", key = {"add-book"})
     public String addBook(String title, Long genreId, String authorIds) {
-        // authorIds: строка вида "1,2,3"
-        Book book = new Book();
-        book.setTitle(title);
-        if (genreId != null) book.setGenre(new Genre(genreId, null));
-        if (authorIds != null && !authorIds.isBlank()) {
-            List<Author> authors = java.util.Arrays.stream(authorIds.split(","))
-                    .map(String::trim)
-                    .map(Long::parseLong)
-                    .map(id -> new Author(id, null))
-                    .collect(Collectors.toList());
-            book.setAuthors(authors);
-        }
+        Book book = buildBook(null, title, genreId, authorIds);
         bookService.insert(book);
         return "Книга добавлена";
     }
 
     // Обновить книгу
     @ShellMethod(value = "Обновить книгу", key = {"update-book"})
-    public String updateBook(long id, String title, Long genreId, String authorIds) {
-        Book book = bookService.findById(id).orElse(null);
-        if (book == null) return "Книга не найдена";
+    public String updateBook(
+            @ShellOption long id,
+            @ShellOption(defaultValue = ShellOption.NULL) String title,
+            @ShellOption(defaultValue = ShellOption.NULL) Long genreId,
+            @ShellOption(defaultValue = ShellOption.NULL) String authorIds) {
+        Book book = buildBook(id, title, genreId, authorIds);
+        try {
+            bookService.update(book);
+            return "Книга обновлена";
+        } catch (NotFoundException e) {
+            return e.getMessage();
+        } catch (Exception e) {
+            return "Ошибка обновления: " + e.getMessage();
+        }
+    }
+
+    // метод для сборки Book из параметров
+    private Book buildBook(Long id, String title, Long genreId, String authorIds) {
+        Book book = new Book();
+        if (id != null) book.setId(id);
         if (title != null) book.setTitle(title);
         if (genreId != null) book.setGenre(new Genre(genreId, null));
-        if (authorIds != null) {
+        if (authorIds != null && !authorIds.isBlank()) {
             List<Author> authors = java.util.Arrays.stream(authorIds.split(","))
                     .map(String::trim)
                     .map(Long::parseLong)
@@ -81,9 +88,9 @@ public class BookShellCommands {
                     .collect(Collectors.toList());
             book.setAuthors(authors);
         }
-        bookService.update(book);
-        return "Книга обновлена";
+        return book;
     }
+
 
     // Удалить книгу
     @ShellMethod(value = "Удалить книгу по id", key = {"delete-book"})
