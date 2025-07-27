@@ -1,24 +1,32 @@
 package ru.otus.vseroev.service;
 
-import ru.otus.vseroev.dao.BookDao;
-import ru.otus.vseroev.model.Book;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import ru.otus.vseroev.dao.BookDao;
+import ru.otus.vseroev.exception.NotFoundException;
+import ru.otus.vseroev.model.Author;
+import ru.otus.vseroev.model.Book;
+import ru.otus.vseroev.model.Genre;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @DisplayName("Сервис для книг должен")
 class BookServiceImplTest {
     @Mock
     private BookDao bookDao;
+    @Mock
+    private GenreService genreService;
+    @Mock
+    private AuthorService authorService;
     @InjectMocks
     private BookServiceImpl bookService;
 
@@ -48,7 +56,8 @@ class BookServiceImplTest {
     @DisplayName("добавлять книгу")
     @Test
     void shouldInsertBook() {
-        Book book = new Book(null, "New", null, List.of());
+        Book book = new Book(null, "New", new Genre(1L, null), List.of());
+        when(genreService.findById(1L)).thenReturn(Optional.of(new Genre(1L, "g")));
         bookService.insert(book);
         verify(bookDao, times(1)).insert(book);
     }
@@ -56,7 +65,8 @@ class BookServiceImplTest {
     @DisplayName("обновлять книгу")
     @Test
     void shouldUpdateBook() {
-        Book book = new Book(3L, "Upd", null, List.of());
+        Book book = new Book(3L, "Upd", new Genre(1L, null), List.of());
+        when(genreService.findById(1L)).thenReturn(Optional.of(new Genre(1L, "g")));
         bookService.update(book);
         verify(bookDao, times(1)).update(book);
     }
@@ -77,5 +87,47 @@ class BookServiceImplTest {
         boolean deleted = bookService.deleteById(999L);
         assertThat(deleted).isFalse();
         verify(bookDao, times(1)).deleteById(999L);
+    }
+
+    @DisplayName("выбрасывать NotFoundException если жанр не найден при insert")
+    @Test
+    void shouldThrowIfGenreNotFoundOnInsert() {
+        Book book = new Book(null, "New", new Genre(99L, null), List.of());
+        when(genreService.findById(99L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> bookService.insert(book))
+            .isInstanceOf(NotFoundException.class)
+            .hasMessageContaining("Жанр не найден");
+    }
+
+    @DisplayName("выбрасывать NotFoundException если автор не найден при insert")
+    @Test
+    void shouldThrowIfAuthorNotFoundOnInsert() {
+        Book book = new Book(null, "New", new Genre(1L, null), List.of(new Author(10L, null)));
+        when(genreService.findById(1L)).thenReturn(Optional.of(new Genre(1L, "g")));
+        when(authorService.findById(10L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> bookService.insert(book))
+            .isInstanceOf(NotFoundException.class)
+            .hasMessageContaining("Автор(ы) с id [10] не найден(ы)");
+    }
+
+    @DisplayName("выбрасывать NotFoundException если жанр не найден при update")
+    @Test
+    void shouldThrowIfGenreNotFoundOnUpdate() {
+        Book book = new Book(1L, "Upd", new Genre(99L, null), List.of());
+        when(genreService.findById(99L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> bookService.update(book))
+            .isInstanceOf(NotFoundException.class)
+            .hasMessageContaining("Жанр не найден");
+    }
+
+    @DisplayName("выбрасывать NotFoundException если автор не найден при update")
+    @Test
+    void shouldThrowIfAuthorNotFoundOnUpdate() {
+        Book book = new Book(1L, "Upd", new Genre(1L, null), List.of(new Author(10L, null)));
+        when(genreService.findById(1L)).thenReturn(Optional.of(new Genre(1L, "g")));
+        when(authorService.findById(10L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> bookService.update(book))
+            .isInstanceOf(NotFoundException.class)
+            .hasMessageContaining("Автор(ы) с id [10] не найден(ы)");
     }
 }
