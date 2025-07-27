@@ -1,0 +1,40 @@
+package org.example.service;
+
+import lombok.RequiredArgsConstructor;
+import org.example.dao.AuthorDao;
+import org.example.model.Author;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class AuthorServiceImpl implements AuthorService {
+    private final AuthorDao authorDao;
+
+    @Override
+    public List<Author> findAll() {
+        return authorDao.findAll();
+    }
+
+    @Override
+    public Optional<Author> findById(Long id) {
+        return authorDao.findById(id);
+    }
+
+    @Override
+    public void insert(Author author) {
+        authorDao.insert(author);
+    }
+
+    @Override
+    public void update(Author author) {
+        authorDao.update(author);
+    }
+
+    @Override
+    public boolean deleteById(Long id) {
+        return authorDao.deleteById(id);
+    }
+}
