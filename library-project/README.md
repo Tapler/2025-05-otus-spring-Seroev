@@ -25,11 +25,11 @@
 ### Книги
 - `books` или `list-books` — список всех книг
 - `book --id 1` — показать книгу по id
-- `add-book --title "Название" --genre-id 1 --author-ids "1,2"` — добавить книгу
-- `update-book --id 1 --title "Новое название" --genre-id 2 --author-ids "2,3"` — обновить книгу
+- `add-book --title "Название" --genreId 1 --authorIds "1,2"` — добавить книгу
+- `update-book --id 1 --title "Новое название" --genreId 2 --authorIds "2,3"` — обновить книгу
 - `delete-book --id 1` — удалить книгу по id
-- `add-author-to-book --book-id 1 --author-id 2` — добавить автора (id=2) к книге (id=1)
-- `remove-author-from-book --book-id 1 --author-id 2` — удалить автора (id=2) из книги (id=1)
+- `add-author-to-book --bookId 1 --authorId 2` — добавить автора (id=2) к книге (id=1)
+- `remove-author-from-book --bookId 1 --authorId 2` — удалить автора (id=2) из книги (id=1)
 
 ### Авторы
 - `authors` или `list-authors` — список всех авторов

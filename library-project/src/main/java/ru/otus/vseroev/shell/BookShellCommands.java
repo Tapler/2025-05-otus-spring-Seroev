@@ -120,7 +120,7 @@ public class BookShellCommands {
     }
 
     // Удалить автора из книги
-    @ShellMethod(value = "Удалить автора из книги", key = {"remove-author-from-book"})
+    @ShellMethod(value = "Удалить автора из книги, должен быть минимум 1", key = {"remove-author-from-book"})
     public String removeAuthorFromBook(@ShellOption long bookId, @ShellOption long authorId) {
         Optional<Book> bookOpt = bookService.findById(bookId);
         if (bookOpt.isEmpty()) {
